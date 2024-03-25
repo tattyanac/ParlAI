@@ -9,14 +9,18 @@ jobs:
         run: |
           sudo apt install python3-pip
           python3 -m pip install -r ./.murmuration-ci/requirements.txt
+
       - name: Build the website
         run: |
           sudo chmod +x ./website/generate.py
           ./website/generate.py
-      - name: Copy the static folder to the built website
-        run: |
           cp -r ./website/static ./website/build/
-          ls -la ./website/build
+
+      - name: Copy and process docs
+        run: |
+          cp -r ./docs ./website/build/
+          sudo chmod +x ./website/postprocess_docs.py
+          ./website/postprocess_docs.py
      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

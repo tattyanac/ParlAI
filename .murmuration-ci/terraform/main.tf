@@ -55,17 +55,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   origin {
     domain_name = aws_s3_bucket.parlai.bucket_regional_domain_name
     origin_id   = aws_s3_bucket.parlai.bucket_regional_domain_name
-
-    custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_keepalive_timeout = 10
-      origin_protocol_policy   = "http-only"
-      origin_read_timeout      = 30
-      origin_ssl_protocols = [
-        "TLSv1.2",
-      ]
-    }
+    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
   viewer_certificate {
@@ -86,9 +76,29 @@ resource "aws_cloudfront_distribution" "cdn" {
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = aws_s3_bucket.parlai.bucket_regional_domain_name
+
+    function_association {
+    event_type = "viewer-request"
+    function_arn = aws_cloudfront_function.redirect.arn
+    }
   }
+}
+
+resource "aws_cloudfront_origin_access_control" "oac" {
+  name = aws_s3_bucket.parlai.bucket_regional_domain_name
+  origin_access_control_origin_type = "s3"
+  signing_behavior = "always"
+  signing_protocol = "sigv4"
 }
 
 output "cdn_endpoint" {
   value = aws_cloudfront_distribution.cdn.domain_name
+}
+
+resource "aws_cloudfront_function" "redirect" {
+  name    = "redirect-for-s3"
+  runtime = "cloudfront-js-2.0"
+  comment = "Redirects to index.html in S3 subfolders"
+  publish = true
+  code    = file("./redirect.js")
 }

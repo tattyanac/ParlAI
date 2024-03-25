@@ -31,8 +31,18 @@ jobs:
             echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
             sudo apt update && sudo apt install terraform
 
-      - name: Terraform apply for the bucket
+      - name: Terraform apply for the bucket then upload to S3 bucket
+        id: terraform
         run: |
+          ROOT_DIR=$(pwd)
           TERRAFORM_DIR="./.murmuration-ci/terraform"
-          terraform -chdir="$TERRAFORM_DIR" init
-          terraform -chdir="$TERRAFORM_DIR" apply -auto-approve
+          cd $TERRAFORM_DIR
+          terraform init
+          terraform apply -auto-approve
+          BUCKET_ENDPOINT=$(terraform output -raw bucket_endpoint)
+          BUCKET_NAME=$(terraform output -raw bucket_name)
+          
+          cd $ROOT_DIR
+          echo "Bucket name: $BUCKET_NAME"
+          echo "Bucket endpoint: $BUCKET_ENDPOINT"
+          aws s3 sync ./website/build s3://$BUCKET_NAME --delete

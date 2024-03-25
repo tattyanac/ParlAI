@@ -1,0 +1,19 @@
+name: Deploy Website
+on: [push]
+jobs:
+  build-and-deploy-website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installing Python and pip
+        run: |
+          sudo apt install python3-pip
+          python3 -m pip install -r ./.murmuration-ci/requirements.txt
+      - name: Build the website
+        run: |
+          sudo chmod +x ./website/generate.py
+          ./website/generate.py
+      - name: Copy the static folder to the built website
+        run: |
+          cp -r ./website/static ./website/build/
+          ls -la ./website/build

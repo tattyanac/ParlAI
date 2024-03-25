@@ -148,3 +148,7 @@ _generated/
 
 # npm compilation
 parlai/crowdsourcing/**/package-lock.json
+
+# Terraform
+.terraform
+.terraform.lock.hcl

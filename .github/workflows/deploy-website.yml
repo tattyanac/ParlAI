@@ -17,3 +17,13 @@ jobs:
         run: |
           cp -r ./website/static ./website/build/
           ls -la ./website/build
+     
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+            
+      - name: Testing the CLI
+        run: aws sts get-caller-identity

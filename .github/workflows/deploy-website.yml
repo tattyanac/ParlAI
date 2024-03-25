@@ -4,10 +4,6 @@ jobs:
   build-and-deploy-website:
     runs-on: ubuntu-latest
     steps:
-      #- uses: actions/setup-python@v5
-      #  with:
-      #    python-version: '3.8'
-
       - uses: actions/checkout@v4
       - name: Installing Python and pip
         run: |
@@ -19,8 +15,8 @@ jobs:
         run: |
           ROOT_DIR=$(pwd)
           cd ./website
-          make
           python generate.py
+          cp -r ./static ./build/
           cd $ROOT_DIR
      
       - name: Configure AWS Credentials

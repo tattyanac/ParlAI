@@ -49,5 +49,5 @@ output "bucket_name" {
 }
 
 output "bucket_endpoint" {
-  value = aws_s3_bucket.parlai.website_endpoint
+  value = aws_s3_bucket_website_configuration.parlai_website.website_endpoint
 }

@@ -7,40 +7,34 @@ resource "aws_s3_bucket" "parlai" {
   }
 }
 
-resource "aws_s3_bucket_website_configuration" "parlai_website" {
-  bucket = aws_s3_bucket.parlai.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
-}
-
 resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
   bucket = aws_s3_bucket.parlai.id
-  block_public_acls   = false
-  block_public_policy = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
+
+data "aws_caller_identity" "account" {}
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.parlai.id
   policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action = [
-          "s3:GetObject"
-        ]
-        Resource = [
-          "${aws_s3_bucket.parlai.arn}/*"
-        ]
-      }
-    ]
+    "Version" = "2012-10-17",
+    "Statement" = {
+        "Sid" = "AllowCloudFrontServicePrincipalReadOnly",
+        "Effect" = "Allow",
+        "Principal" = {
+            "Service" = "cloudfront.amazonaws.com"
+        },
+        "Action" = "s3:GetObject",
+        "Resource" = "${aws_s3_bucket.parlai.arn}/*",
+        "Condition" = {
+            "StringEquals" = {
+                "AWS:SourceArn" = "${aws_cloudfront_distribution.cdn.arn}"
+            }
+        }
+    }
   })
 }
 
@@ -49,17 +43,18 @@ output "bucket_name" {
 }
 
 output "bucket_endpoint" {
-  value = aws_s3_bucket_website_configuration.parlai_website.website_endpoint
+  value = aws_s3_bucket.parlai.bucket_regional_domain_name
 }
 
 
-resource "aws_cloudfront_distribution" "distribution" {
+resource "aws_cloudfront_distribution" "cdn" {
   enabled         = true
   is_ipv6_enabled = true
+  default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket_website_configuration.parlai_website.website_endpoint
-    origin_id   = aws_s3_bucket_website_configuration.parlai_website.website_endpoint
+    domain_name = aws_s3_bucket.parlai.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.parlai.bucket_regional_domain_name
 
     custom_origin_config {
       http_port                = 80
@@ -90,10 +85,10 @@ resource "aws_cloudfront_distribution" "distribution" {
     compress               = true
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = aws_s3_bucket_website_configuration.parlai_website.website_endpoint
+    target_origin_id       = aws_s3_bucket.parlai.bucket_regional_domain_name
   }
 }
 
 output "cdn_endpoint" {
-  value = aws_cloudfront_distribution.distribution.domain_name
+  value = aws_cloudfront_distribution.cdn.domain_name
 }

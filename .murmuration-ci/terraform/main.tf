@@ -52,6 +52,19 @@ resource "aws_cloudfront_distribution" "cdn" {
   is_ipv6_enabled = true
   default_root_object = "index.html"
 
+  custom_error_response {
+    error_code = 403
+    response_code = 403
+    response_page_path = "/error.html"
+  }
+
+  custom_error_response {
+    error_code = 404
+    response_code = 404
+    response_page_path = "/error.html"
+  }
+
+
   origin {
     domain_name = aws_s3_bucket.parlai.bucket_regional_domain_name
     origin_id   = aws_s3_bucket.parlai.bucket_regional_domain_name

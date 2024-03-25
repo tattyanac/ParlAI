@@ -12,15 +12,10 @@ jobs:
 
       - name: Build the website
         run: |
-          sudo chmod +x ./website/generate.py
-          ./website/generate.py
-          cp -r ./website/static ./website/build/
-
-      - name: Copy and process docs
-        run: |
-          cp -r ./docs ./website/build/
-          sudo chmod +x ./website/postprocess_docs.py
-          ./website/postprocess_docs.py
+          ROOT_DIR=$(pwd)
+          cd ./website
+          make all
+          cd $ROOT_DIR
      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -31,9 +26,9 @@ jobs:
             
       - name: Install terraform
         run: |
-            wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-            sudo apt update && sudo apt install terraform
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
 
       - name: Terraform apply for the bucket then upload to S3 bucket
         id: terraform

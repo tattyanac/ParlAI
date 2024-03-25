@@ -4,23 +4,23 @@ jobs:
   build-and-deploy-website:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
+      #- uses: actions/setup-python@v5
+      #  with:
+      #    python-version: '3.8'
 
       - uses: actions/checkout@v4
       - name: Installing Python and pip
         run: |
-          python --version
           sudo apt update
-          sudo apt install python3-pip
-          python3 -m pip install -r ./requirements.txt
+          sudo apt install -y python-is-python3 python3-pip
+          python -m pip install -r ./.murmuration-ci/requirements.txt
 
       - name: Build the website
         run: |
           ROOT_DIR=$(pwd)
           cd ./website
-          make all
+          make
+          python generate.py
           cd $ROOT_DIR
      
       - name: Configure AWS Credentials

@@ -1,0 +1,64 @@
+ParlAI Architecture 
+Bringing the Architecture to Life!
+
+Scope:
+Design an infrastructure for hosting the website - ParlAI, a Python framework for training, sharing, and testing dialogue models, including open-domain chitchat, task-oriented dialogue, and visual question answering.
+
+Technologies used:
+* AWS cloud platform
+    * Amazon Simple Storage Service - AWS S3 bucket
+    * Amazon CloudFront - content delivery network service
+* Terraform - Infrastructure as Code
+* Scripting languages
+    * Python 
+    * JavaScript
+* GitHub Actions - continuous integration and continuous delivery (CI/CD)
+
+Description
+
+I will use an Amazon S3 bucket to host the static assets of our website and Amazon CloudFront for content delivery. 
+This will ensure that our website loads quickly and smoothly for our visitors. 
+It's a cost-effective solution that can improve our website's performance and reduce load times. 
+By using Amazon S3 and CloudFront, we can also ensure our website is scalable and reliable and users have a secure browsing experience.
+
+Terraform resources used:
+
+* Private S3 Bucket (aws_s3_bucket): Amazon S3 is where the website’s static assets (HTML, CSS, JS, images) are stored.
+It’s designated as “private”, meaning direct public access is restricted. Only CloudFront, with its OAC, can fetch content from this bucket.
+
+* Public Access Restrictions (aws_s3_bucket_public_access_block): For security, this configuration ensures that our bucket is not publicly 
+accessible. It blocks public ACLs, and policies, and restricts public access to ensure our content remains private.
+
+* S3 Bucket Policy (aws_s3_bucket_policy) "allow_cloudfront" grants CloudFront read-only access via Origin Access Control (OAC). 
+This approach ensures exclusive content access through CloudFront.
+
+* CloudFront
+CloudFront Distribution is a content delivery network (CDN) service that ensures HTTPS-only communication with the client.
+
+* CloudFront OAC + S3 Bucket Policy (aws_cloudfront_origin_access_control)
+CloudFront Origin Access Control is a security feature that restricts access to an S3 bucket to only authorized CloudFront distributions.
+It is a more flexible and secure way to secure S3 buckets with CloudFront.
+When using OAC, you can ensure that your S3 buckets are only accessible to authorized CloudFront distributions, 
+which helps to keep your data safe and secure.
+
+* CloudFront Function: This function is specifically designed for HTTP redirects. 
+CloudFront Functions offer simplicity for lighter tasks such as URL redirections, ensuring low latency, 
+cost-effectiveness especially for high-request use cases, and ease of deployment
+
+* Terraform Outputs:
+Terraform outputs are essential for getting important information about generated resources, such as S3 bucket names and CloudFront URLs, 
+for validation and post-deployment access.
+
+GitHub Actions workflow for deploying the ParlAI website.
+
+To summarize, this architecture offers a highly available and scalable method for delivering a static website with low latency. 
+By utilizing CloudFront, and S3 together, the configuration guarantees availability, decreased latency, and HTTPS security to provide a secure and smooth user experience.
+
+Dilemmas and challenges
+Throughout the process, the most significant challenge that I faced was the Docs file. 
+Despite my best efforts, I was unable to fix it. While the website appears to be functioning correctly, 
+clicking on the Docs menu results in an error as it is built separately from the rest of the website. 
+Moreover, I encountered several issues while attempting to build the website using the makefile.
+Additionally, the lack of documentation on the issues that arose while trying to build the docs file compounded the challenge, 
+as common pitfalls were not mentioned. Considering that it's an archived repo, it may not be up to date, posing further obstacles 
+to working with the code over time.

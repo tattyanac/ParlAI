@@ -1,4 +1,4 @@
-
+# S3 Bucket Creation
 resource "aws_s3_bucket" "parlai" {
   bucket = var.bucket_name
 
@@ -7,6 +7,7 @@ resource "aws_s3_bucket" "parlai" {
   }
 }
 
+# Public Access Restrictions
 resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
   bucket = aws_s3_bucket.parlai.id
   block_public_acls       = true
@@ -15,8 +16,7 @@ resource "aws_s3_bucket_public_access_block" "bucket_access_block" {
   restrict_public_buckets = true
 }
 
-data "aws_caller_identity" "account" {}
-
+# S3 Bucket Policy
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.parlai.id
   policy = jsonencode({
@@ -38,15 +38,8 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
   })
 }
 
-output "bucket_name" {
-  value = aws_s3_bucket.parlai.id
-}
 
-output "bucket_endpoint" {
-  value = aws_s3_bucket.parlai.bucket_regional_domain_name
-}
-
-
+# CloudFront Distribution Configuration
 resource "aws_cloudfront_distribution" "cdn" {
   enabled         = true
   is_ipv6_enabled = true
@@ -63,7 +56,6 @@ resource "aws_cloudfront_distribution" "cdn" {
     response_code = 404
     response_page_path = "/error.html"
   }
-
 
   origin {
     domain_name = aws_s3_bucket.parlai.bucket_regional_domain_name
@@ -102,10 +94,6 @@ resource "aws_cloudfront_origin_access_control" "oac" {
   origin_access_control_origin_type = "s3"
   signing_behavior = "always"
   signing_protocol = "sigv4"
-}
-
-output "cdn_endpoint" {
-  value = aws_cloudfront_distribution.cdn.domain_name
 }
 
 resource "aws_cloudfront_function" "redirect" {
